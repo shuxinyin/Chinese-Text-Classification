@@ -10,4 +10,4 @@ Albert Result:
 TextCNN Result:  
 02个epoch  Accuracy: 0.9224 Loss in test 0.2708
 
-**详细结果报告以及环境要求，如何运行等，各模型内部文件夹README.md有说明**
+**详细结果报告以及环境要求，如何运行等，各模型内部文件夹README.md有说明。**
