@@ -1,0 +1,27 @@
+# data path
+data_dir: ../../data/THUCNews
+pretrained_path: D:/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
+save_path: ../../ckpt/textcnn_classification
+
+# model parameter
+gpu: '0'
+epoches: 16
+lr: 0.005
+batch_size: 256
+sent_max_len: 256
+
+
+# text cnn parameters
+pretrained_weight: False
+pretrained_weight_path: ./pretrained_weight_emb.npy
+
+kernel_size: [3, 4, 5]
+num_kernels: 100
+vocab_size: 21128  # same with albert vocab_size
+embedding_dim: 64
+num_class: 10
+
+stride: 1
+padding_index: 0
+dropout: 0.3
+

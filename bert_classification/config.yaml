@@ -1,0 +1,10 @@
+# data path
+data_dir: ../../data/THUCNews
+pretrained_path: D:/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
+save_path: ../../ckpt/albert_classification
+
+# model parameter
+gpu: '0'
+lr: 0.005
+batch_size: 256
+sent_max_len: 256
