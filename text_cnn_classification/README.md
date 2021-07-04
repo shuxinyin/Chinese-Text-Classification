@@ -3,7 +3,7 @@
 TextCNN,将CNN应用在NLP上，模型简单，主要做了如下试验
 
 1. 在不加载预训练文件，随机初始化embedding,单独使用textCNN,2个epoch准确率0.9224，高于bert（0.8400），可见text-cnn奇效。
-不过，这可能与bert网络深参数多，未作调参有关。
+不过这可能与bert网络深参数多，未作调参有关。
 2. 也可以先通过bert或word2vec得到训练文本中所有的涉及的字的embedding，作为预训练embedding，下游接textCNN（
 此部分调通了代码，未得完整结果，感兴趣可自行试验）
 
