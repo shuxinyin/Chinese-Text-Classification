@@ -4,7 +4,6 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn import Conv2d
 
 
 class CNNClassifier(nn.Module):
@@ -17,17 +16,12 @@ class CNNClassifier(nn.Module):
         self.num_class = params.num_class
         self.stride = params.stride
 
-        self.kernel_size = params.kernel_size  # (h*312)
-        self.stride = params.stride
-        # input: (B, 512, 312)
-
         if params.pretrained_weight:
             word_model_emb = np.load(params.pretrained_weight_path)
             weights = torch.tensor(word_model_emb)
             self.emb = nn.Embedding.from_pretrained(weights)
         else:
             self.emb = nn.Embedding(params.vocab_size, params.embedding_dim, padding_idx=params.padding_index)
-
 
         self.conv_0 = nn.Conv2d(1, self.num_kernels, (self.kernel_size[0], params.embedding_dim), self.stride)
         self.conv_1 = nn.Conv2d(1, self.num_kernels, (self.kernel_size[1], params.embedding_dim), self.stride)
@@ -39,6 +33,7 @@ class CNNClassifier(nn.Module):
         self.dropout = nn.Dropout(params.dropout)
 
     def forward(self, text):
+        # input: (B, 512, 312)
         # text (batch, channel=1, seq_len)
 
         emb = self.emb(text)  # (batch, seq_len, emb_size)
