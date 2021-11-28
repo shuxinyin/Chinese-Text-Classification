@@ -1,10 +1,16 @@
 # data path
-data_dir: ../../data/THUCNews
-pretrained_path: D:/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
-save_path: ../../ckpt/albert_classification
+data_dir: ../data/THUCNews/news
+save_path: ../ckpt/albert_classification
 
-# model parameter
+# BERT parameter setup (change here while changing pre-train model)
+pretrained_path: /data/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
+bert_type: tiny_bert  #  macbert or tiny_bert
+hidden_size: 312 #  macbert: 768 or tiny_albert: 312
+pooling_type: first-last-avg
+
+# model parameter setup
 gpu: '0'
-lr: 0.005
-batch_size: 256
-sent_max_len: 256
+epoch: 12
+lr: 0.05
+batch_size: 512
+sent_max_len: 42

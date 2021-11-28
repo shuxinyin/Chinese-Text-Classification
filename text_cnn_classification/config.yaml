@@ -1,7 +1,7 @@
-# data path
-data_dir: ../../data/THUCNews
-pretrained_path: D:/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
-save_path: ../../ckpt/textcnn_classification
+# news path
+data_dir: ../data/THUCNews/news
+pretrained_path: /data/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
+save_path: ../data/THUCNews/news/model.ckpt
 
 # model parameter
 gpu: '0'

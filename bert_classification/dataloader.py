@@ -6,11 +6,28 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-from bert_encode import choose_bert_type
+from transformers import BertModel, AlbertModel, BertConfig, BertTokenizer
+
+
+def choose_bert_type(path, bert_type="tiny_albert"):
+    """
+    choose bert type for chinese, tiny_albert or macbert
+    return: tokenizer, model
+    """
+    tokenizer = BertTokenizer.from_pretrained(path)
+    model_config = BertConfig.from_pretrained(path)
+    if bert_type == "tiny_bert":
+        model = AlbertModel.from_pretrained(path, config=model_config)
+    elif bert_type == "macbert":
+        model = BertModel.from_pretrained(path, config=model_config)
+    else:
+        model = None
+        print("ERROR, not choose model!")
+    return tokenizer, model
 
 
 def load_data(path, label_dic):
-    train = pd.read_csv(path, header=None, sep='\t', names=["label", "text"])
+    train = pd.read_csv(path, header=None, sep='\t', names=["text", "label"])
     print(train.shape)
     # valid = pd.read_csv(os.path.join(path, "cnews.val.txt"), header=None, sep='\t', names=["label", "text"])
     # test = pd.read_csv(os.path.join(path, "cnews.test.txt"), header=None, sep='\t', names=["label", "text"])
@@ -43,32 +60,21 @@ class BatchTextCall(object):
         self.tokenizer = tokenizer
         self.max_len = max_len
 
+    def text2id(self, batch_text):
+        return self.tokenizer(batch_text, max_length=self.max_len,
+                              truncation=True, padding='max_length', return_tensors='pt')
+
     def __call__(self, batch):
         batch_text = [item[0] for item in batch]
         batch_label = [item[1] for item in batch]
 
-        batch_token, batch_segment, batch_mask = list(), list(), list()
-        for text in batch_text:
-            if len(text) > self.max_len-2:
-                text = text[:self.max_len-2]
-            token = self.tokenizer.tokenize(text)
-            token = ['[CLS]'] + token + ['[SEP]']
-            token_id = self.tokenizer.convert_tokens_to_ids(token)
+        source = self.text2id(batch_text)
+        token = source.get('input_ids').squeeze(1)
+        mask = source.get('attention_mask').squeeze(1)
+        segment = source.get('token_type_ids').squeeze(1)
+        label = torch.tensor(batch_label)
 
-            padding = [0] * (self.max_len - len(token_id))
-            mask = [1] * len(token_id) + padding
-            segment = [0] * len(token_id) + padding
-            token_id = token_id + padding
-
-            batch_token.append(token_id)
-            batch_segment.append(segment)
-            batch_mask.append(mask)
-
-        batch_tensor_token = torch.tensor(batch_token)
-        batch_tensor_segment = torch.tensor(batch_segment)
-        batch_tensor_mask = torch.tensor(batch_mask)
-        batch_tensor_label = torch.tensor(batch_label)
-        return batch_tensor_token, batch_tensor_segment, batch_tensor_mask, batch_tensor_label
+        return token, segment, mask, label
 
 
 if __name__ == "__main__":

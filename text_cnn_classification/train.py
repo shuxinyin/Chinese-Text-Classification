@@ -32,7 +32,7 @@ def choose_bert_type(path, bert_type="tiny_albert"):
     return tokenizer, model
 
 
-def evaluation(model, test_dataloader, loss_func, dic, save_path, valid_or_test="test"):
+def evaluation(model, test_dataloader, loss_func, label2ind_dict, save_path, valid_or_test="test"):
     # model.load_state_dict(torch.load(save_path))
 
     model.eval()
@@ -55,14 +55,15 @@ def evaluation(model, test_dataloader, loss_func, dic, save_path, valid_or_test=
 
     acc = metrics.accuracy_score(labels_all, predict_all)
     if valid_or_test == "test":
-        report = metrics.classification_report(labels_all, predict_all, target_names=dic.keys(), digits=4)
+        report = metrics.classification_report(labels_all, predict_all, target_names=label2ind_dict.keys(), digits=4)
         confusion = metrics.confusion_matrix(labels_all, predict_all)
         return acc, total_loss / len(test_dataloader), report, confusion
     return acc, total_loss / len(test_dataloader)
 
 
 def train(config):
-    label_dict = {'体育': 0, '娱乐': 1, '家居': 2, '房产': 3, '教育': 4, '时尚': 5, '时政': 6, '游戏': 7, '科技': 8, '财经': 9}
+    label2ind_dict = {'体育': 0, '娱乐': 1, '家居': 2, '房产': 3, '教育': 4, '时尚': 5, '时政': 6, '游戏': 7, '科技': 8, '财经': 9}
+    label_dict = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9}
 
     os.environ["CUDA_VISIBLE_DEVICES"] = config.gpu
     torch.backends.cudnn.benchmark = True
@@ -71,15 +72,15 @@ def train(config):
     tokenizer, bert_encode_model = choose_bert_type(config.pretrained_path, bert_type="tiny_albert")
     train_dataset_call = BatchTextCall(tokenizer, max_len=config.sent_max_len)
 
-    train_dataset = TextDataset(os.path.join(config.data_dir, "cnews.train.txt"), label_dict)
+    train_dataset = TextDataset(os.path.join(config.data_dir, "train.txt"), label_dict)
     train_dataloader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=2,
                                   collate_fn=train_dataset_call)
 
-    valid_dataset = TextDataset(os.path.join(config.data_dir, "cnews.val.txt"), label_dict)
+    valid_dataset = TextDataset(os.path.join(config.data_dir, "dev.txt"), label_dict)
     valid_dataloader = DataLoader(valid_dataset, batch_size=config.batch_size, shuffle=True, num_workers=2,
                                   collate_fn=train_dataset_call)
 
-    test_dataset = TextDataset(os.path.join(config.data_dir, "cnews.test.txt"), label_dict)
+    test_dataset = TextDataset(os.path.join(config.data_dir, "test.txt"), label_dict)
     test_dataloader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=True, num_workers=2,
                                  collate_fn=train_dataset_call)
 
@@ -112,12 +113,12 @@ def train(config):
         print("Epoch: %03d; loss = %.4f cost time  %.4f" % (epoch, np.mean(loss_total), time.time() - start_time))
 
         acc, loss, report, confusion = evaluation(multi_classification_model,
-                                                  valid_dataloader, loss_func, label_dict,
+                                                  valid_dataloader, loss_func, label2ind_dict,
                                                   config.save_path)
         print("Accuracy: %.4f Loss in test %.4f" % (acc, loss))
         if top_acc < acc:
             top_acc = acc
-            torch.save(multi_classification_model.state_dict(), config.save_path)
+            # torch.save(multi_classification_model.state_dict(), config.save_path)
             print(report, confusion)
         time.sleep(1)
 

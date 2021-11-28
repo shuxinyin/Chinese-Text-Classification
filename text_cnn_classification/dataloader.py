@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 
 
 def load_data(path, label_dic):
-    train = pd.read_csv(path, header=None, sep='\t', names=["label", "text"])
+    train = pd.read_csv(path, header=None, sep='\t', names=["text", "label"])
     print(train.shape)
     # valid = pd.read_csv(os.path.join(path, "cnews.val.txt"), header=None, sep='\t', names=["label", "text"])
     # test = pd.read_csv(os.path.join(path, "cnews.test.txt"), header=None, sep='\t', names=["label", "text"])
@@ -84,7 +84,7 @@ def choose_bert_type(path, bert_type="tiny_albert"):
 
 if __name__ == "__main__":
 
-    data_dir = "../../data/THUCNews"
+    data_dir = "../../news/THUCNews"
     pretrained_path = "D:\\Learn_Project\\Backup_Data\\tiny_bert_chinese_pretrained"
 
     label_dict = {'体育': 0, '娱乐': 1, '家居': 2, '房产': 3, '教育': 4, '时尚': 5, '时政': 6, '游戏': 7, '科技': 8, '财经': 9}
