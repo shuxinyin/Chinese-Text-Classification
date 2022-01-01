@@ -3,9 +3,9 @@ data_dir: ../data/THUCNews/news
 save_path: ../ckpt/albert_classification
 
 # BERT parameter setup (change here while changing pre-train model)
-pretrained_path: /data/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
-bert_type: tiny_bert  #  macbert or tiny_bert
-hidden_size: 312 #  macbert: 768 or tiny_albert: 312
+pretrained_path: /data/Learn_Project/Backup_Data/bert_chinese
+bert_type: bert  #  bert(macbert) or tiny_bert
+hidden_size: 768 #  bert(macbert): 768 or tiny_albert: 312
 pooling_type: first-last-avg
 
 # model parameter setup

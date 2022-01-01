@@ -8,11 +8,12 @@
 
 
 ### Result
-| model | Accuracy | Loss |  time(s)/epoch | pretrain-model-download-link  | algorithm nodes |
-| ---------- | ------ |---------- | ------ |------ | ------ |
-| Albert-tiny | 0.7961 | 0.6357 | 15.6404 |[albert_chinese](https://huggingface.co/ckiplab/albert-tiny-chinese/tree/main)  | [预训练模型：从BERT到XLNet、RoBERTa、ALBERT](https://zhuanlan.zhihu.com/p/436017910) |
-| macbert-base | 0.9156  | 0.2811 | 137.4945 | [macbert_chinese](https://huggingface.co/hfl/chinese-macbert-base/tree/main)  | wait to update|
-| TextCNN | 0.8773 | 0.6357 |  28.8052 | None  | [搭一个TextCNN-文本分类利器](https://zhuanlan.zhihu.com/p/386614000) |
+| model        | Accuracy | Loss |  time(s)/epoch | pretrain-model-download-link  | algorithm nodes |
+|--------------| ------ |---------- | ------ |------ | ------ |
+| bert-base    | 0.9102 | 0.3382 | 137.7193 |[bert_chinese](https://huggingface.co/bert-base-chinese/tree/main)  | [预训练模型：从BERT到XLNet、RoBERTa、ALBERT](https://zhuanlan.zhihu.com/p/436017910) |
+| Albert-tiny  | 0.7961 | 0.6357 | 15.6404 |[albert_chinese](https://huggingface.co/ckiplab/albert-tiny-chinese/tree/main) | [预训练模型：从BERT到XLNet、RoBERTa、ALBERT](https://zhuanlan.zhihu.com/p/436017910) |
+| macbert-base | 0.9156 | 0.2811 | 137.4945 | [macbert_chinese](https://huggingface.co/hfl/chinese-macbert-base/tree/main) | wait to update|
+| TextCNN      | 0.8773 | 0.6357 |  28.8052 | None  | [搭一个TextCNN-文本分类利器](https://zhuanlan.zhihu.com/p/386614000) |
 
 
 **不同模型结果的详细结果报告、如何运行等，详见单个项目内README.md。**

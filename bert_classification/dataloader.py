@@ -11,14 +11,14 @@ from transformers import BertModel, AlbertModel, BertConfig, BertTokenizer
 
 def choose_bert_type(path, bert_type="tiny_albert"):
     """
-    choose bert type for chinese, tiny_albert or macbert
+    choose bert type for chinese, tiny_albert or macbert（bert）
     return: tokenizer, model
     """
     tokenizer = BertTokenizer.from_pretrained(path)
     model_config = BertConfig.from_pretrained(path)
     if bert_type == "tiny_bert":
         model = AlbertModel.from_pretrained(path, config=model_config)
-    elif bert_type == "macbert":
+    elif bert_type == "bert":
         model = BertModel.from_pretrained(path, config=model_config)
     else:
         model = None
