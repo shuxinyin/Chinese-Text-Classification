@@ -85,7 +85,7 @@ def choose_bert_type(path, bert_type="tiny_albert"):
 if __name__ == "__main__":
 
     data_dir = "../../news/THUCNews"
-    pretrained_path = "D:\\Learn_Project\\Backup_Data\\tiny_bert_chinese_pretrained"
+    pretrained_path = "D:\\Learn_Project\\Backup_Data\\albert_chinese_pretrained"
 
     label_dict = {'体育': 0, '娱乐': 1, '家居': 2, '房产': 3, '教育': 4, '时尚': 5, '时政': 6, '游戏': 7, '科技': 8, '财经': 9}
 

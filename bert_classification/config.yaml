@@ -4,13 +4,17 @@ save_path: ../ckpt/albert_classification
 
 # BERT parameter setup (change here while changing pre-train model)
 pretrained_path: /data/Learn_Project/Backup_Data/bert_chinese
-bert_type: bert  #  bert(macbert) or tiny_bert
-hidden_size: 768 #  bert(macbert): 768 or tiny_albert: 312
+#pretrained_path: /data/Learn_Project/Backup_Data/RoBERTa_zh_Large_PyTorch
+bert_type: bert  #  bert or albert
+# hidden_size: 768 #  roberta-large:1024, bert/macbert/roberta-base:768, tiny_albert: 312
 pooling_type: first-last-avg
 
 # model parameter setup
 gpu: '0'
-epoch: 12
-lr: 0.05
+epoch: 20
+lr: 0.005
+warmup_proportion: 0.1
 batch_size: 512
 sent_max_len: 42
+do_lower_case: True  # Set this flag if you are using an uncased model.
+bertadam: False  # If bertadam, then set correct_bias = False

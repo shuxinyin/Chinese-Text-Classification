@@ -6,25 +6,31 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from transformers import BertPreTrainedModel
+
+import torch
+from torch import nn
+from torch.nn import CrossEntropyLoss
+
 
 class MultiClass(nn.Module):
     """ text processed by bert model encode and get cls vector for multi classification
     """
 
-    def __init__(self, bert_encode_model, hidden_size=768, num_classes=10, pooling_type='first-last-avg'):
+    def __init__(self, bert_encode_model, model_config, num_classes=10, pooling_type='first-last-avg'):
+
         super(MultiClass, self).__init__()
-        self.bert_encode_model = bert_encode_model
+        self.bert = bert_encode_model
         self.num_classes = num_classes
-        self.fc = nn.Linear(hidden_size, num_classes)
+        self.fc = nn.Linear(model_config.hidden_size, num_classes)
         self.pooling = pooling_type
 
     def forward(self, batch_token, batch_segment, batch_attention_mask):
         with torch.no_grad():
-
-            out = self.bert_encode_model(batch_token,
-                                         attention_mask=batch_attention_mask,
-                                         token_type_ids=batch_segment,
-                                         output_hidden_states=True)
+            out = self.bert(batch_token,
+                            attention_mask=batch_attention_mask,
+                            token_type_ids=batch_segment,
+                            output_hidden_states=True)
             # print(out)
 
             if self.pooling == 'cls':
@@ -46,3 +52,14 @@ class MultiClass(nn.Module):
 
         out_fc = self.fc(out)
         return out_fc
+
+
+if __name__ == '__main__':
+    path = "/data/Learn_Project/Backup_Data/bert_chinese"
+    MultiClassModel = MultiClass
+    # MultiClassModel = BertForMultiClassification
+    multi_classification_model = MultiClassModel.from_pretrained(path, num_classes=10)
+    if hasattr(multi_classification_model, 'bert'):
+        print("-------------------------------------------------")
+    else:
+        print("**********************************************")

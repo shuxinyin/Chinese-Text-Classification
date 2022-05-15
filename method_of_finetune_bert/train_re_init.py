@@ -6,34 +6,15 @@ from tqdm import tqdm
 from sklearn import metrics
 
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 import transformers
-from transformers import BertModel, AlbertModel, BertConfig, BertTokenizer
 
-from dataloader import TextDataset, BatchTextCall
+from dataloader import TextDataset, BatchTextCall, choose_bert_type
 from model import MultiClass
 from utils import load_config
-
-
-def choose_bert_type(path, bert_type="tiny_albert"):
-    """
-    choose bert type for chinese, tiny_albert or macbert（bert）
-    return: tokenizer, model
-    """
-
-    if bert_type == "albert":
-        model_config = BertConfig.from_pretrained(path)
-        model = AlbertModel.from_pretrained(path, config=model_config)
-    elif bert_type == "bert" or bert_type == "roberta":
-        model_config = BertConfig.from_pretrained(path)
-        model = BertModel.from_pretrained(path, config=model_config)
-    else:
-        model_config, model = None, None
-        print("ERROR, not choose model!")
-
-    return model_config, model
 
 
 def evaluation(model, test_dataloader, loss_func, label2ind_dict, save_path, valid_or_test="test"):
@@ -74,8 +55,7 @@ def train(config):
     torch.backends.cudnn.benchmark = True
 
     # load_data(os.path.join(data_dir, "cnews.train.txt"), label_dict)
-
-    tokenizer = BertTokenizer.from_pretrained(config.pretrained_path)
+    tokenizer, bert_encode_model = choose_bert_type(config.pretrained_path, bert_type=config.bert_type)
     train_dataset_call = BatchTextCall(tokenizer, max_len=config.sent_max_len)
 
     train_dataset = TextDataset(os.path.join(config.data_dir, "train.txt"))
@@ -89,27 +69,49 @@ def train(config):
     test_dataset = TextDataset(os.path.join(config.data_dir, "test.txt"))
     test_dataloader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=True, num_workers=10,
                                  collate_fn=train_dataset_call)
-
-    model_config, bert_encode_model = choose_bert_type(config.pretrained_path, bert_type=config.bert_type)
-    multi_classification_model = MultiClass(bert_encode_model, model_config,
+    # MultiClassModel = MultiClass
+    # multi_classification_model = MultiClass.from_pretrained(config.pretrained_path, hidden_size=config.hidden_size,
+    #                                                         num_classes=10, pooling_type=config.pooling_type)
+    multi_classification_model = MultiClass(bert_encode_model, hidden_size=config.hidden_size,
                                             num_classes=10, pooling_type=config.pooling_type)
     multi_classification_model.cuda()
     # multi_classification_model.load_state_dict(torch.load(config.save_path))
 
-    num_train_optimization_steps = len(train_dataloader) * config.epoch
-    param_optimizer = list(multi_classification_model.named_parameters())
-    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-    optimizer_grouped_parameters = [
-        {'params': [p for n, p in param_optimizer
-                    if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-        {'params': [p for n, p in param_optimizer
-                    if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-    ]
-    optimizer = transformers.AdamW(optimizer_grouped_parameters, lr=config.lr, correct_bias=not config.bertadam)
-    scheduler = transformers.get_linear_schedule_with_warmup(optimizer,
-                                                             int(num_train_optimization_steps * config.warmup_proportion),
-                                                             num_train_optimization_steps)
+    optimizer = torch.optim.AdamW(multi_classification_model.parameters(),
+                                  lr=config.lr,
+                                  betas=(0.9, 0.999),
+                                  eps=1e-08,
+                                  weight_decay=0.01, amsgrad=False)
     loss_func = F.cross_entropy
+
+    if config.reinit_pooler:
+        if config.bert_type in ["bert", "roberta", "albert"]:
+            encoder_temp = getattr(multi_classification_model, config.bert_type)
+            encoder_temp.pooler.dense.weight.data.normal_(mean=0.0, std=encoder_temp.config.initializer_range)
+            encoder_temp.pooler.dense.bias.data.zero_()
+            for p in encoder_temp.pooler.parameters():
+                p.requires_grad = True
+        else:
+            raise NotImplementedError
+
+    if config.reinit_layers > 0:
+        if config.bert_type in ["bert", "roberta", "albert"]:
+            assert config.reinit_pooler
+
+            encoder_temp = getattr(multi_classification_model, config.bert_type)
+            for layer in encoder_temp.encoder.layer[-config.reinit_layers:]:
+                for module in layer.modules():
+                    if isinstance(module, (nn.Linear, nn.Embedding)):
+                        # Slightly different from the TF version which uses truncated_normal for initialization
+                        # cf https://github.com/pytorch/pytorch/pull/5617
+                        module.weight.data.normal_(mean=0.0, std=encoder_temp.config.initializer_range)
+                    elif isinstance(module, nn.LayerNorm):
+                        module.bias.data.zero_()
+                        module.weight.data.fill_(1.0)
+                    if isinstance(module, nn.Linear) and module.bias is not None:
+                        module.bias.data.zero_()
+        else:
+            raise NotImplementedError
 
     loss_total, top_acc = [], 0
     for epoch in range(config.epoch):
@@ -127,7 +129,6 @@ def train(config):
             loss = loss_func(out, label)
             loss.backward()
             optimizer.step()
-            scheduler.step()
             optimizer.zero_grad()
             loss_total.append(loss.detach().item())
         print("Epoch: %03d; loss = %.4f cost time  %.4f" % (epoch, np.mean(loss_total), time.time() - start_time))
@@ -151,4 +152,7 @@ if __name__ == "__main__":
 
     print(type(config.lr), type(config.batch_size))
     config.lr = float(config.lr)
+    config.reinit_pooler = True
+    config.reinit_layers = 6
+
     train(config)

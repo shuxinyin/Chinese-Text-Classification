@@ -10,30 +10,10 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 import transformers
-from transformers import BertModel, AlbertModel, BertConfig, BertTokenizer
 
-from dataloader import TextDataset, BatchTextCall
+from dataloader import TextDataset, BatchTextCall, choose_bert_type
 from model import MultiClass
 from utils import load_config
-
-
-def choose_bert_type(path, bert_type="tiny_albert"):
-    """
-    choose bert type for chinese, tiny_albert or macbert（bert）
-    return: tokenizer, model
-    """
-
-    if bert_type == "albert":
-        model_config = BertConfig.from_pretrained(path)
-        model = AlbertModel.from_pretrained(path, config=model_config)
-    elif bert_type == "bert" or bert_type == "roberta":
-        model_config = BertConfig.from_pretrained(path)
-        model = BertModel.from_pretrained(path, config=model_config)
-    else:
-        model_config, model = None, None
-        print("ERROR, not choose model!")
-
-    return model_config, model
 
 
 def evaluation(model, test_dataloader, loss_func, label2ind_dict, save_path, valid_or_test="test"):
@@ -74,8 +54,7 @@ def train(config):
     torch.backends.cudnn.benchmark = True
 
     # load_data(os.path.join(data_dir, "cnews.train.txt"), label_dict)
-
-    tokenizer = BertTokenizer.from_pretrained(config.pretrained_path)
+    tokenizer, bert_encode_model = choose_bert_type(config.pretrained_path, bert_type=config.bert_type)
     train_dataset_call = BatchTextCall(tokenizer, max_len=config.sent_max_len)
 
     train_dataset = TextDataset(os.path.join(config.data_dir, "train.txt"))
@@ -90,26 +69,29 @@ def train(config):
     test_dataloader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=True, num_workers=10,
                                  collate_fn=train_dataset_call)
 
-    model_config, bert_encode_model = choose_bert_type(config.pretrained_path, bert_type=config.bert_type)
-    multi_classification_model = MultiClass(bert_encode_model, model_config,
+    multi_classification_model = MultiClass(bert_encode_model, hidden_size=config.hidden_size,
                                             num_classes=10, pooling_type=config.pooling_type)
     multi_classification_model.cuda()
     # multi_classification_model.load_state_dict(torch.load(config.save_path))
 
-    num_train_optimization_steps = len(train_dataloader) * config.epoch
-    param_optimizer = list(multi_classification_model.named_parameters())
-    no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
-    optimizer_grouped_parameters = [
-        {'params': [p for n, p in param_optimizer
-                    if not any(nd in n for nd in no_decay)], 'weight_decay': 0.01},
-        {'params': [p for n, p in param_optimizer
-                    if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-    ]
-    optimizer = transformers.AdamW(optimizer_grouped_parameters, lr=config.lr, correct_bias=not config.bertadam)
-    scheduler = transformers.get_linear_schedule_with_warmup(optimizer,
-                                                             int(num_train_optimization_steps * config.warmup_proportion),
-                                                             num_train_optimization_steps)
+    optimizer = torch.optim.AdamW(multi_classification_model.parameters(),
+                                  lr=config.lr,
+                                  betas=(0.9, 0.999),
+                                  eps=1e-08,
+                                  weight_decay=0.01, amsgrad=False)
     loss_func = F.cross_entropy
+
+    if config.freeze_layer_count:
+        # We freeze here the embeddings of the model
+        for param in multi_classification_model.bert.embeddings.parameters():
+            param.requires_grad = False
+
+        if config.freeze_layer_count != -1:
+            # if freeze_layer_count == -1, we only freeze the embedding layer
+            # otherwise we freeze the first `freeze_layer_count` encoder layers
+            for layer in multi_classification_model.bert.encoder.layer[:config.freeze_layer_count]:
+                for param in layer.parameters():
+                    param.requires_grad = False
 
     loss_total, top_acc = [], 0
     for epoch in range(config.epoch):
@@ -127,7 +109,6 @@ def train(config):
             loss = loss_func(out, label)
             loss.backward()
             optimizer.step()
-            scheduler.step()
             optimizer.zero_grad()
             loss_total.append(loss.detach().item())
         print("Epoch: %03d; loss = %.4f cost time  %.4f" % (epoch, np.mean(loss_total), time.time() - start_time))
@@ -144,11 +125,27 @@ def train(config):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='bert classification')
-    parser.add_argument("-c", "--config", type=str, default="./config.yaml")
+    parser = argparse.ArgumentParser(description='bert finetune test')
+    parser.add_argument("--data_dir", type=str, default="../data/THUCNews/news")
+    parser.add_argument("--save_path", type=str, default="../ckpt/bert_classification")
+    parser.add_argument("--pretrained_path", type=str, default="/data/Learn_Project/Backup_Data/bert_chinese",
+                        help="pre-train model path")
+    parser.add_argument("--bert_type", type=str, default="bert", help="bert or albert")
+    parser.add_argument("--hidden_size", type=int, default=768,
+                        help="roberta-large:1024, bert/macbert/roberta-base:768, tiny_albert: 312")
+    parser.add_argument("--gpu", type=str, default='0')
+    parser.add_argument("--epoch", type=int, default=20)
+    parser.add_argument("--lr", type=float, default=0.005)
+    parser.add_argument("--warmup_proportion", type=float, default=0.1)
+    parser.add_argument("--pooling_type", type=str, default="first-last-avg")
+    parser.add_argument("--batch_size", type=int, default=512)
+    parser.add_argument("--sent_max_len", type=int, default=44)
+    parser.add_argument("--do_lower_case", type=bool, default=True,
+                        help="Set this flag true if you are using an uncased model.")
+    parser.add_argument("--bertadam", type=bool, default=False, help="If bertadam, then set correct_bias = False")
+    parser.add_argument("--reinit_pooler", type=bool, default=True, help="reinit pooler layer")
+    parser.add_argument("--reinit_layers", type=int, default=6, help="reinit pooler layers count")
+    parser.add_argument("--frozen_layers", type=int, default=6, help="frozen layers")
     args = parser.parse_args()
-    config = load_config(args.config)
 
-    print(type(config.lr), type(config.batch_size))
-    config.lr = float(config.lr)
-    train(config)
+    train(args)

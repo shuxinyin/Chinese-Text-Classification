@@ -1,6 +1,6 @@
 # news path
 data_dir: ../data/THUCNews/news
-pretrained_path: /data/Learn_Project/Backup_Data/tiny_bert_chinese_pretrained
+pretrained_path: /data/Learn_Project/Backup_Data/albert_chinese_pretrained
 save_path: ../data/THUCNews/news/model.ckpt
 
 # model parameter

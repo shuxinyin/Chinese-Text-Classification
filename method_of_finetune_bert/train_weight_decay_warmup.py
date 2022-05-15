@@ -10,30 +10,10 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
 import transformers
-from transformers import BertModel, AlbertModel, BertConfig, BertTokenizer
 
-from dataloader import TextDataset, BatchTextCall
+from dataloader import TextDataset, BatchTextCall, choose_bert_type
 from model import MultiClass
 from utils import load_config
-
-
-def choose_bert_type(path, bert_type="tiny_albert"):
-    """
-    choose bert type for chinese, tiny_albert or macbert（bert）
-    return: tokenizer, model
-    """
-
-    if bert_type == "albert":
-        model_config = BertConfig.from_pretrained(path)
-        model = AlbertModel.from_pretrained(path, config=model_config)
-    elif bert_type == "bert" or bert_type == "roberta":
-        model_config = BertConfig.from_pretrained(path)
-        model = BertModel.from_pretrained(path, config=model_config)
-    else:
-        model_config, model = None, None
-        print("ERROR, not choose model!")
-
-    return model_config, model
 
 
 def evaluation(model, test_dataloader, loss_func, label2ind_dict, save_path, valid_or_test="test"):
@@ -74,8 +54,7 @@ def train(config):
     torch.backends.cudnn.benchmark = True
 
     # load_data(os.path.join(data_dir, "cnews.train.txt"), label_dict)
-
-    tokenizer = BertTokenizer.from_pretrained(config.pretrained_path)
+    tokenizer, bert_encode_model = choose_bert_type(config.pretrained_path, bert_type=config.bert_type)
     train_dataset_call = BatchTextCall(tokenizer, max_len=config.sent_max_len)
 
     train_dataset = TextDataset(os.path.join(config.data_dir, "train.txt"))
@@ -90,8 +69,7 @@ def train(config):
     test_dataloader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=True, num_workers=10,
                                  collate_fn=train_dataset_call)
 
-    model_config, bert_encode_model = choose_bert_type(config.pretrained_path, bert_type=config.bert_type)
-    multi_classification_model = MultiClass(bert_encode_model, model_config,
+    multi_classification_model = MultiClass(bert_encode_model, hidden_size=config.hidden_size,
                                             num_classes=10, pooling_type=config.pooling_type)
     multi_classification_model.cuda()
     # multi_classification_model.load_state_dict(torch.load(config.save_path))
@@ -109,6 +87,7 @@ def train(config):
     scheduler = transformers.get_linear_schedule_with_warmup(optimizer,
                                                              int(num_train_optimization_steps * config.warmup_proportion),
                                                              num_train_optimization_steps)
+
     loss_func = F.cross_entropy
 
     loss_total, top_acc = [], 0

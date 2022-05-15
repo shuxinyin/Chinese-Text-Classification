@@ -10,26 +10,6 @@ from transformers import BertModel, AlbertModel, BertConfig, BertTokenizer
 from transformers import BertForSequenceClassification, AutoModelForMaskedLM
 
 
-def choose_bert_type(path, bert_type="tiny_albert"):
-    """
-    choose bert type for chinese, tiny_albert or macbert（bert）
-    return: tokenizer, model
-    """
-
-    tokenizer = BertTokenizer.from_pretrained(path)
-    if bert_type == "albert":
-        model_config = BertConfig.from_pretrained(path)
-        model = AlbertModel.from_pretrained(path, config=model_config)
-    elif bert_type == "bert" or bert_type == "roberta":
-        model_config = BertConfig.from_pretrained(path)
-        model = BertModel.from_pretrained(path, config=model_config)
-    else:
-        tokenizer, model = None, None
-        print("ERROR, not choose model!")
-
-    return tokenizer, model
-
-
 def load_data(path):
     train = pd.read_csv(path, header=None, sep='\t', names=["text", "label"])
     print(train.shape)
