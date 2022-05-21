@@ -31,10 +31,8 @@ def choose_bert_type(path, bert_type="tiny_albert"):
 
 
 def load_data(path):
-    train = pd.read_csv(path, header=None, sep='\t', names=["text", "label"])
-    print(train.shape)
-    # valid = pd.read_csv(os.path.join(path, "cnews.val.txt"), header=None, sep='\t', names=["label", "text"])
-    # test = pd.read_csv(os.path.join(path, "cnews.test.txt"), header=None, sep='\t', names=["label", "text"])
+    train = pd.read_csv(path, header=0, sep='\t', names=["text", "label"])
+    print("data shape:", train.shape)
 
     texts = train.text.to_list()
     labels = train.label.map(int).to_list()
@@ -83,7 +81,7 @@ class BatchTextCall(object):
 
 if __name__ == "__main__":
 
-    data_dir = "/data/GitProject/Text-Classification/Chinese-Text-Classification/data/THUCNews/news"
+    data_dir = "/GitProject/Text-Classification/Chinese-Text-Classification/data/THUCNews/news_all"
     # pretrained_path = "/data/Learn_Project/Backup_Data/chinese-roberta-wwm-ext"
     pretrained_path = "/data/Learn_Project/Backup_Data/RoBERTa_zh_L12_PyTorch"
 

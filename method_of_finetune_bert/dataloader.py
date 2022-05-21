@@ -63,7 +63,7 @@ class BatchTextCall(object):
 
 if __name__ == "__main__":
 
-    data_dir = "/data/GitProject/Text-Classification/Chinese-Text-Classification/data/THUCNews/news"
+    data_dir = "/GitProject/Text-Classification/Chinese-Text-Classification/data/THUCNews/news_all"
     # pretrained_path = "/data/Learn_Project/Backup_Data/chinese-roberta-wwm-ext"
     pretrained_path = "/data/Learn_Project/Backup_Data/RoBERTa_zh_L12_PyTorch"
 

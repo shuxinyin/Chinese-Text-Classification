@@ -1,7 +1,7 @@
-# news path
-data_dir: ../data/THUCNews/news
+# news_all path
+data_dir: ../data/THUCNews/news_all
 pretrained_path: /data/Learn_Project/Backup_Data/albert_chinese_pretrained
-save_path: ../data/THUCNews/news/model.ckpt
+save_path: ../data/THUCNews/news_all/model.ckpt
 
 # model parameter
 gpu: '0'

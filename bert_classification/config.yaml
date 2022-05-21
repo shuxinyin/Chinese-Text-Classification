@@ -11,10 +11,10 @@ pooling_type: first-last-avg
 
 # model parameter setup
 gpu: '0'
-epoch: 20
+epoch: 32
 lr: 0.005
 warmup_proportion: 0.1
 batch_size: 512
-sent_max_len: 42
+sent_max_len: 44
 do_lower_case: True  # Set this flag if you are using an uncased model.
 bertadam: False  # If bertadam, then set correct_bias = False

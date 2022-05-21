@@ -126,7 +126,7 @@ def train(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='bert finetune test')
-    parser.add_argument("--data_dir", type=str, default="../data/THUCNews/news")
+    parser.add_argument("--data_dir", type=str, default="../data/THUCNews/news_all")
     parser.add_argument("--save_path", type=str, default="../ckpt/bert_classification")
     parser.add_argument("--pretrained_path", type=str, default="/data/Learn_Project/Backup_Data/bert_chinese",
                         help="pre-train model path")

@@ -68,7 +68,8 @@ def evaluation(model, test_dataloader, loss_func, label2ind_dict, save_path, val
 
 
 def train(config):
-    label2ind_dict = {'体育': 0, '娱乐': 1, '家居': 2, '房产': 3, '教育': 4, '时尚': 5, '时政': 6, '游戏': 7, '科技': 8, '财经': 9}
+    label2ind_dict = {'finance': 0, 'realty': 1, 'stocks': 2, 'education': 3, 'science': 4, 'society': 5, 'politics': 6,
+                      'sports': 7, 'game': 8, 'entertainment': 9}
 
     os.environ["CUDA_VISIBLE_DEVICES"] = config.gpu
     torch.backends.cudnn.benchmark = True
@@ -139,7 +140,7 @@ def train(config):
         if top_acc < acc:
             top_acc = acc
             # torch.save(multi_classification_model.state_dict(), config.save_path)
-            print(report, confusion)
+            print(report, '\n', confusion)
         time.sleep(1)
 
 
