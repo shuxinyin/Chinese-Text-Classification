@@ -11,7 +11,7 @@ from transformers import BertForSequenceClassification, AutoModelForMaskedLM
 
 
 def load_data(path):
-    train = pd.read_csv(path, header=None, sep='\t', names=["text", "label"])
+    train = pd.read_csv(path, header=0, sep='\t', names=["text", "label"])
     print(train.shape)
     # valid = pd.read_csv(os.path.join(path, "cnews.val.txt"), header=None, sep='\t', names=["label", "text"])
     # test = pd.read_csv(os.path.join(path, "cnews.test.txt"), header=None, sep='\t', names=["label", "text"])
