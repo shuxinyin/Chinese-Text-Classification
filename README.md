@@ -37,7 +37,7 @@
 
 #### Notes:
 > a detailed description is given here.     
-> 详细笔记: [如何让Bert在finetune时更好更稳一点](https://www.zhihu.com/people/da-mo-wang-dare/posts)
+> 详细笔记: [Bert在fine-tune时训练的几种技巧](https://zhuanlan.zhihu.com/p/524036087)
 
 #### How To Run
 > gpu device: 3090ti  
