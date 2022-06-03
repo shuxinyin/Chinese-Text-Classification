@@ -13,7 +13,7 @@ gpu device: 3090ti
 #### 2.Notes:
 
 > a detailed description is given here.    
-> 详细笔记: [如何让Bert在finetune时更好更稳一点](https://www.zhihu.com/people/da-mo-wang-dare/posts)
+> 详细笔记: [Bert在fine-tune时训练的几种技巧](https://zhuanlan.zhihu.com/p/524036087)
 
 ### 3.how to run
 
@@ -22,9 +22,10 @@ gpu device: 3090ti
 
 ### 4.Results
 本项目主要做了关于以上参数的实验，组合下来，总计64组，所有的实验结果可以在目录下**finetune_bert_better/README.md**找到。
-> 其中：1/0 represented used or not  
-> 表现最好的为50组f1=0.9405（bert_adam1-weight_decay1-reinit_pooler0-reinit_layers0-frozen_layers0-warmup_proportion0.1）。  
-> 表现最差的为50组f1=0.9281（bert_adam1-weight_decay1-reinit_pooler0-reinit_layers6-frozen_layers6-warmup_proportion0.0）。  
+> 其中：1/0 represented used or not
+> 表现最好的为50组f1=0.9405，27epoch*65.4266s（bert_adam1-weight_decay1-reinit_pooler0-reinit_layers0-frozen_layers0-warmup_proportion0.1）。  
+> 表现最差的为55组f1=0.9281，28epoch*41.4246s（bert_adam1-weight_decay1-reinit_pooler0-reinit_layers6-frozen_layers6-warmup_proportion0.0）。
+> 加了frozen-parameter的速度会快不少，平均41.4246s/epoch 
 
 | index | bertadam | weight_decay | reinit_pooler | reinit_layers | frozen_layers | warmup_proportion | result     | 
 |-------|----------|--------------|---------------|---------------|---------------|-------------------|------------|
