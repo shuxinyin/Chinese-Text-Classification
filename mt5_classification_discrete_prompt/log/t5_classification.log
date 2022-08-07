@@ -1,0 +1,1 @@
+Namespace(batch_size=16, bert_type='bert', data_dir='../data/THUCNews/news', epoch=32, gpu='0', lr=0.001, pooling_type='first-last-avg', pretrained_path='/data/Learn_Project/Backup_Data/mt5-small', save_path='../ckpt/t5_classification', sent_max_len=64, use_prompt=True, warmup_proportion=0.1)
